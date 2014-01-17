@@ -16,6 +16,7 @@ module Doorkeeper
     field :expires_in, :type => Integer
     field :redirect_uri, :type => String
     field :revoked_at, :type => DateTime
+    field :meta, :type => Hash
 
     index({ token: 1 }, { unique: true })
   end

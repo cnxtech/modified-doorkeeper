@@ -40,7 +40,8 @@ module Doorkeeper
           :resource_owner_id => grant.resource_owner_id,
           :scopes            => grant.scopes_string,
           :expires_in        => server.access_token_expires_in,
-          :use_refresh_token => server.refresh_token_enabled?
+          :use_refresh_token => server.refresh_token_enabled?,
+          :meta              => grant.meta
         })
       end
 

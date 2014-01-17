@@ -14,6 +14,7 @@ module Doorkeeper
     field :token, :type => String
     field :expires_in, :type => Integer
     field :revoked_at, :type => DateTime
+    field :meta, :type => Hash
 
     index({ token: 1 }, { unique: true })
     index({ refresh_token: 1 }, { unique: true, sparse: true })
