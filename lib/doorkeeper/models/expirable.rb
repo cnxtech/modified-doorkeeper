@@ -15,7 +15,6 @@ module Doorkeeper
         expires_sec = expires.seconds.round(0)
         expires_sec > 0 ? expires_sec : 0  
       end
-      private :expired_time
     end
   end
 end

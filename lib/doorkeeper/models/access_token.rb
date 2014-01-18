@@ -36,9 +36,11 @@ module Doorkeeper
     end
 
     def self.matching_token_for(application, resource_owner_or_id, scopes)
-      resource_owner_id = resource_owner_or_id.respond_to?(:to_key) ? resource_owner_or_id.id : resource_owner_or_id
-      token = last_authorized_token_for(application, resource_owner_id)
-      token if token && ScopeChecker.matches?(token.scopes, scopes)
+      # resource_owner_id = resource_owner_or_id.respond_to?(:to_key) ? resource_owner_or_id.id : resource_owner_or_id
+      # token = last_authorized_token_for(application, resource_owner_id)
+      # token if token && ScopeChecker.matches?(token.scopes, scopes)
+      # Always create a new token, never reuse old ones.
+      nil
     end
 
     def token_type
