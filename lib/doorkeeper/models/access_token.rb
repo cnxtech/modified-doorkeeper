@@ -6,32 +6,32 @@ module Doorkeeper
     include Doorkeeper::Models::Accessible
     include Doorkeeper::Models::Scopes
 
-    belongs_to :application, :class_name => "Doorkeeper::Application", :inverse_of => :access_tokens
+    belongs_to :application, class_name: 'Doorkeeper::Application', inverse_of: :access_tokens
 
-    validates :token, :presence => true
-    validates :token, :uniqueness => true
-    validates :refresh_token, :uniqueness => true, :if => :use_refresh_token?
+    validates :token, presence: true
+    validates :token, uniqueness: true
+    validates :refresh_token, uniqueness: true, if: :use_refresh_token?
 
     attr_accessor :use_refresh_token
     if ::Rails.version.to_i < 4 || defined?(ProtectedAttributes)
       attr_accessible :application_id, :resource_owner_id, :expires_in, :scopes, :use_refresh_token, :meta
     end
 
-    before_validation :generate_token, :on => :create
-    before_validation :generate_refresh_token, :on => :create, :if => :use_refresh_token?
+    before_validation :generate_token, on: :create
+    before_validation :generate_refresh_token, on: :create, if: :use_refresh_token?
 
     def self.authenticate(token)
-      where(:token => token).first
+      where(token: token).first
     end
 
     def self.by_refresh_token(refresh_token)
-      where(:refresh_token => refresh_token).first
+      where(refresh_token: refresh_token).first
     end
 
     def self.revoke_all_for(application_id, resource_owner)
-      where(:application_id => application_id,
-            :resource_owner_id => resource_owner.id,
-            :revoked_at => nil)
+      where(application_id: application_id,
+            resource_owner_id: resource_owner.id,
+            revoked_at: nil)
       .map(&:revoke)
     end
 
@@ -42,20 +42,25 @@ module Doorkeeper
     end
 
     def token_type
-      "bearer"
+      'bearer'
     end
 
     def use_refresh_token?
       self.use_refresh_token
     end
 
-    def as_json(options={})
+    def as_json(options = {})
       {
-        :resource_owner_id => self.resource_owner_id,
-        :scopes => self.scopes,
-        :expires_in_seconds => self.expires_in_seconds,
-        :application => { :uid => self.application.uid }
+        resource_owner_id: self.resource_owner_id,
+        scopes: self.scopes,
+        expires_in_seconds: self.expires_in_seconds,
+        application: { uid: self.application.uid }
       }
+    end
+
+    # It indicates whether the tokens have the same credential
+    def same_credential?(access_token)
+      application_id == access_token.application_id && resource_owner_id == access_token.resource_owner_id
     end
 
     private
@@ -67,6 +72,5 @@ module Doorkeeper
     def generate_token
       self.token = UniqueToken.generate
     end
-
   end
 end

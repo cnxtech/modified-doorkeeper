@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.2.0
+
+- enhancements
+  - [#376] Allow users to enable basic header authorization for access tokens.
+  - [#374] Token revocation implementation [RFC 7009]
+  - [#295] Only enable specific grant flows.
+- internals
+  - [#381] Locale source fix.
+  - [#380] Renames `errors_for` to `doorkeeper_errors_for`.
+  - [#390] Style adjustments in accordance with Ruby Style Guide form
+    Thoughtbot.
+
+## 1.1.0
+
+- enhancements
+  - [#336] mongoid4 support.
+  - [#372] Allow users to set ActiveRecord table_name_prefix/suffix options
+- internals
+  - [#343] separate OAuth's admin and user end-point to different layouts, upgrade theme to Bootstrap 3.1.
+  - [#348] Move render_options in filter after `@error` has been set
+
 ## 1.0.0
 
 - bug (spec)
@@ -38,7 +59,7 @@
   - [#204] Allow to overwrite scope in routes
 - internals
   - Returns only present keys in Token Response (may imply a backwards
-    incompatible change). https://github.com/applicake/doorkeeper/issues/220
+    incompatible change). https://github.com/doorkeeper-gem/doorkeeper/issues/220
 - bug
   - [#290] Support for Rails 4 when 'protected_attributes' gem is present.
 

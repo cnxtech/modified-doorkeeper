@@ -2,13 +2,13 @@ case DOORKEEPER_ORM
 when :active_record
   class User < ActiveRecord::Base
   end
-when :mongoid2, :mongoid3
+when :mongoid2, :mongoid3, :mongoid4
   class User
     include Mongoid::Document
     include Mongoid::Timestamps
 
-    field :name, :type => String
-    field :password, :type => String
+    field :name, type: String
+    field :password, type: String
   end
 when :mongo_mapper
   class User
@@ -26,6 +26,6 @@ class User
   end
 
   def self.authenticate!(name, password)
-    User.where(:name => name, :password => password).first
+    User.where(name: name, password: password).first
   end
 end
