@@ -59,8 +59,11 @@ module Doorkeeper
     end
 
     # It indicates whether the tokens have the same credential
+    # Note: this is different for Coinbase than for upstream since we allow the same app to have different
+    #       authorizations and tokens for the same resource owner and we only want a given token to be able to
+    #       revoke itself.
     def same_credential?(access_token)
-      application_id == access_token.application_id && resource_owner_id == access_token.resource_owner_id
+      token == access_token.token
     end
 
     private
