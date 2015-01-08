@@ -68,7 +68,6 @@ feature 'Authorization endpoint' do
 
     scenario 'raises exception on forged requests' do
       ActionController::Base.any_instance.should_receive(:handle_unverified_request)
-      pp @client
       post "/oauth/authorize",
         client_id:      @client.uid,
         redirect_uri:   @client.redirect_uri,

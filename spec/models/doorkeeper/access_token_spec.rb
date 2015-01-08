@@ -8,7 +8,7 @@ module Doorkeeper
 
     it_behaves_like 'an accessible token'
     it_behaves_like 'a revocable token'
-    it_behaves_like 'an unique token' do
+    it_behaves_like 'a unique token' do
       let(:factory_name) { :access_token }
     end
 
@@ -62,7 +62,7 @@ module Doorkeeper
         context 'the second token has the same owner and same app' do
           let(:access_token2) { FactoryGirl.create :access_token, default_attributes }
           it 'success' do
-            expect(access_token1.same_credential?(access_token2)).to be_true
+            expect(access_token1.same_credential?(access_token2)).to be_falsey
           end
         end
 
@@ -71,7 +71,7 @@ module Doorkeeper
           let(:access_token2) { FactoryGirl.create :access_token, application: other_application, resource_owner_id: resource_owner_id }
 
           it 'fail' do
-            expect(access_token1.same_credential?(access_token2)).to be_false
+            expect(access_token1.same_credential?(access_token2)).to be_falsey
           end
         end
 
@@ -81,7 +81,7 @@ module Doorkeeper
           let(:access_token2) { FactoryGirl.create :access_token, application: other_application, resource_owner_id: 42 }
 
           it 'fail' do
-            expect(access_token1.same_credential?(access_token2)).to be_false
+            expect(access_token1.same_credential?(access_token2)).to be_falsey
           end
         end
 
@@ -89,8 +89,38 @@ module Doorkeeper
           let(:access_token2) { FactoryGirl.create :access_token, application: application, resource_owner_id: 42 }
 
           it 'fail' do
-            expect(access_token1.same_credential?(access_token2)).to be_false
+            expect(access_token1.same_credential?(access_token2)).to be_falsey
           end
+        end
+      end
+    end
+
+    describe '#acceptable?' do
+      context 'a token that is not accessible' do
+        let(:token) { FactoryGirl.create(:access_token, created_at: 6.hours.ago) }
+
+        it 'should return false' do
+          expect(token.acceptable?(nil)).to be false
+        end
+      end
+
+      context 'a token that has the incorrect scopes' do
+        let(:token) { FactoryGirl.create(:access_token) }
+
+        it 'should return false' do
+          expect(token.acceptable?(['public'])).to be false
+        end
+      end
+
+      context 'a token is acceptable with the correct scopes' do
+        let(:token) do
+          token = FactoryGirl.create(:access_token)
+          token[:scopes] = 'public'
+          token
+        end
+
+        it 'should return true' do
+          expect(token.acceptable?(['public'])).to be true
         end
       end
     end

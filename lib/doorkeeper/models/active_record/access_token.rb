@@ -6,7 +6,7 @@ module Doorkeeper
 
     serialize :meta
 
-    self.table_name = "#{self.table_name_prefix}oauth_access_tokens#{self.table_name_suffix}".to_sym
+    self.table_name = "#{table_name_prefix}oauth_access_tokens#{table_name_suffix}".to_sym
 
     def self.delete_all_for(application_id, resource_owner)
       where(application_id: application_id,
@@ -14,8 +14,8 @@ module Doorkeeper
     end
     private_class_method :delete_all_for
 
-    def self.last_authorized_token_for(application, resource_owner_id)
-      where(application_id: application.id,
+    def self.last_authorized_token_for(application_id, resource_owner_id)
+      where(application_id: application_id,
             resource_owner_id: resource_owner_id,
             revoked_at: nil).
         order('created_at desc').

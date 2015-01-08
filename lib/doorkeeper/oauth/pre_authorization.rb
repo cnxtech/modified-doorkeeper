@@ -1,7 +1,7 @@
 module Doorkeeper
   module OAuth
     class PreAuthorization
-      include Doorkeeper::Validations
+      include Validations
 
       validate :response_type, error: :unsupported_response_type
       validate :client, error: :invalid_client
@@ -34,7 +34,7 @@ module Doorkeeper
       end
 
       def error_response
-        Doorkeeper::OAuth::ErrorResponse.from_request(self)
+        OAuth::ErrorResponse.from_request(self)
       end
 
       private
@@ -55,7 +55,7 @@ module Doorkeeper
       # TODO: test uri should be matched against the client's one
       def validate_redirect_uri
         return false unless redirect_uri.present?
-        Helpers::URIChecker.test_uri?(redirect_uri) ||
+        Helpers::URIChecker.native_uri?(redirect_uri) ||
           Helpers::URIChecker.valid_for_authorization?(redirect_uri, client.redirect_uri)
       end
     end

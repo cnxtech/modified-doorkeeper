@@ -1,4 +1,3 @@
-require 'doorkeeper/models/mongoid/revocable'
 require 'doorkeeper/models/mongoid/scopes'
 require 'doorkeeper/models/mongoid/version'
 
@@ -6,9 +5,8 @@ module Doorkeeper
   class AccessToken
     include Mongoid::Document
     include Mongoid::Timestamps
-    include Doorkeeper::Models::Mongoid::Revocable
-    include Doorkeeper::Models::Mongoid::Scopes
-    extend Doorkeeper::Models::Mongoid::Version
+    include Models::Mongoid::Scopes
+    extend Models::Mongoid::Version
 
     self.store_in collection: :oauth_access_tokens
 
@@ -32,8 +30,8 @@ module Doorkeeper
     end
     private_class_method :delete_all_for
 
-    def self.last_authorized_token_for(application, resource_owner_id)
-      where(application_id: application.id,
+    def self.last_authorized_token_for(application_id, resource_owner_id)
+      where(application_id: application_id,
             resource_owner_id: resource_owner_id,
             revoked_at: nil).
         order_by([:created_at, :desc]).

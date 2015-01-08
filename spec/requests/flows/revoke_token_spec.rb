@@ -45,8 +45,8 @@ feature 'Revoke Token Flow' do
         authorization_access_token.reload
 
         expect(response).to be_success
-        expect(token_to_revoke.revoked?).to be_true
-        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_true
+        expect(token_to_revoke.revoked?).to be_truthy
+        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_truthy
 
       end
 
@@ -59,9 +59,9 @@ feature 'Revoke Token Flow' do
         authorization_access_token.reload
 
         expect(response).to be_success
-        expect(token_to_revoke.revoked?).to be_false
-        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_false
-        expect(authorization_access_token.revoked?).to be_false
+        expect(token_to_revoke.revoked?).to be_falsey
+        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_falsey
+        expect(authorization_access_token.revoked?).to be_falsey
 
       end
 
@@ -84,10 +84,7 @@ feature 'Revoke Token Flow' do
         authorization_access_token.reload
 
         expect(response).to be_success
-        expect(token_to_revoke.revoked?).to be_true
-        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_true
-        expect(authorization_access_token.revoked?).to be_false
-
+        expect(token_to_revoke.revoked?).to be_falsey
       end
     end
 
@@ -109,9 +106,9 @@ feature 'Revoke Token Flow' do
         authorization_access_token.reload
 
         expect(response).to be_success
-        expect(token_to_revoke.revoked?).to be_false
-        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_false
-        expect(authorization_access_token.revoked?).to be_false
+        expect(token_to_revoke.revoked?).to be_falsey
+        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_falsey
+        expect(authorization_access_token.revoked?).to be_falsey
 
       end
     end
@@ -133,31 +130,9 @@ feature 'Revoke Token Flow' do
         authorization_access_token.reload
 
         expect(response).to be_success
-        expect(token_to_revoke.revoked?).to be_false
-        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_false
-        expect(authorization_access_token.revoked?).to be_false
-
-      end
-    end
-
-    context 'With valid refresh token to revoke' do
-
-      let(:token_to_revoke) do
-        FactoryGirl.create(:access_token,
-                           application: client_application,
-                           resource_owner_id: resource_owner.id,
-                           use_refresh_token: true)
-      end
-
-      scenario 'client wants to revoke the given refresh token' do
-
-        post revocation_token_endpoint_url, { token: token_to_revoke.refresh_token, token_type_hint: 'refresh_token' }, headers
-        authorization_access_token.reload
-        token_to_revoke.reload
-
-        expect(response).to be_success
-        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_true
-        expect(authorization_access_token).to_not be_revoked
+        expect(token_to_revoke.revoked?).to be_falsey
+        expect(Doorkeeper::AccessToken.by_refresh_token(token_to_revoke.refresh_token).revoked?).to be_falsey
+        expect(authorization_access_token.revoked?).to be_falsey
 
       end
     end

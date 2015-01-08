@@ -1,8 +1,8 @@
 module Doorkeeper
   module OAuth
     class ErrorResponse
-      include Doorkeeper::OAuth::Authorization::URIBuilder
-      include Doorkeeper::OAuth::Helpers
+      include OAuth::Authorization::URIBuilder
+      include OAuth::Helpers
 
       def self.from_request(request, attributes = {})
         state = request.state if request.respond_to?(:state)
@@ -12,13 +12,17 @@ module Doorkeeper
       delegate :name, :description, :state, to: :@error
 
       def initialize(attributes = {})
-        @error = Doorkeeper::OAuth::Error.new(*attributes.values_at(:name, :state))
+        @error = OAuth::Error.new(*attributes.values_at(:name, :state))
         @redirect_uri = attributes[:redirect_uri]
         @response_on_fragment = attributes[:response_on_fragment]
       end
 
       def body
-        { error: name, error_description: description, state: state }.reject { |k, v| v.blank? }
+        {
+          error: name,
+          error_description: description,
+          state: state
+        }.reject { |_, v| v.blank? }
       end
 
       def status
@@ -26,7 +30,8 @@ module Doorkeeper
       end
 
       def redirectable?
-        (name != :invalid_redirect_uri) && (name != :invalid_client) && !URIChecker.test_uri?(@redirect_uri)
+        name != :invalid_redirect_uri && name != :invalid_client &&
+          !URIChecker.native_uri?(@redirect_uri)
       end
 
       def redirect_uri

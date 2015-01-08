@@ -1,12 +1,14 @@
 module Doorkeeper
   class AccessToken
-    include Doorkeeper::OAuth::Helpers
-    include Doorkeeper::Models::Expirable
-    include Doorkeeper::Models::Revocable
-    include Doorkeeper::Models::Accessible
-    include Doorkeeper::Models::Scopes
+    include OAuth::Helpers
+    include Models::Expirable
+    include Models::Revocable
+    include Models::Accessible
+    include Models::Scopes
 
-    belongs_to :application, class_name: 'Doorkeeper::Application', inverse_of: :access_tokens
+    belongs_to :application,
+               class_name: 'Doorkeeper::Application',
+               inverse_of: :access_tokens
 
     validates :token, presence: true
     validates :token, uniqueness: true
@@ -14,11 +16,14 @@ module Doorkeeper
 
     attr_accessor :use_refresh_token
     if ::Rails.version.to_i < 4 || defined?(ProtectedAttributes)
-      attr_accessible :application_id, :resource_owner_id, :expires_in, :scopes, :use_refresh_token, :meta
+      attr_accessible :application_id, :resource_owner_id, :expires_in,
+                      :scopes, :use_refresh_token, :meta
     end
 
     before_validation :generate_token, on: :create
-    before_validation :generate_refresh_token, on: :create, if: :use_refresh_token?
+    before_validation :generate_refresh_token,
+                      on: :create,
+                      if: :use_refresh_token?
 
     def self.authenticate(token)
       where(token: token).first
@@ -36,9 +41,29 @@ module Doorkeeper
     end
 
     def self.matching_token_for(application, resource_owner_or_id, scopes)
-      resource_owner_id = resource_owner_or_id.respond_to?(:to_key) ? resource_owner_or_id.id : resource_owner_or_id
-      token = last_authorized_token_for(application, resource_owner_id)
+      resource_owner_id = if resource_owner_or_id.respond_to?(:to_key)
+                            resource_owner_or_id.id
+                          else
+                            resource_owner_or_id
+                          end
+      token = last_authorized_token_for(application.try(:id), resource_owner_id)
       token if token && ScopeChecker.matches?(token.scopes, scopes)
+    end
+
+    def self.find_or_create_for(application, resource_owner_id, scopes, expires_in, use_refresh_token)
+      if Doorkeeper.configuration.reuse_access_token
+        access_token = matching_token_for(application, resource_owner_id, scopes)
+        if access_token && !access_token.expired?
+          return access_token
+        end
+      end
+      create!(
+        application_id:    application.try(:id),
+        resource_owner_id: resource_owner_id,
+        scopes:            scopes.to_s,
+        expires_in:        expires_in,
+        use_refresh_token: use_refresh_token
+      )
     end
 
     def token_type
@@ -46,15 +71,15 @@ module Doorkeeper
     end
 
     def use_refresh_token?
-      self.use_refresh_token
+      use_refresh_token
     end
 
     def as_json(options = {})
       {
-        resource_owner_id: self.resource_owner_id,
-        scopes: self.scopes,
-        expires_in_seconds: self.expires_in_seconds,
-        application: { uid: self.application.uid }
+        resource_owner_id: resource_owner_id,
+        scopes: scopes,
+        expires_in_seconds: expires_in_seconds,
+        application: { uid: application.try(:uid) }
       }
     end
 
@@ -64,6 +89,10 @@ module Doorkeeper
     #       revoke itself.
     def same_credential?(access_token)
       token == access_token.token
+    end
+
+    def acceptable?(scopes)
+      accessible? && includes_scope?(scopes)
     end
 
     private
