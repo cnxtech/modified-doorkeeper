@@ -27,16 +27,8 @@ shared_examples 'a revocable token' do
   end
 end
 
-shared_examples 'an unique token' do
+shared_examples 'a unique token' do
   describe :token do
-    it 'is unique' do
-      tokens = []
-      3.times do
-        token = FactoryGirl.create(factory_name).token
-        expect(tokens).not_to include(token)
-      end
-    end
-
     it 'is generated before validation' do
       expect { subject.valid? }.to change { subject.token }.from(nil)
     end

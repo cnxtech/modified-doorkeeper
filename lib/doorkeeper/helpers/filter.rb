@@ -6,18 +6,18 @@ module Doorkeeper
           doorkeeper_for = DoorkeeperForBuilder.create_doorkeeper_for(*args)
 
           before_filter doorkeeper_for.filter_options do
-            unless doorkeeper_for.validate_token(doorkeeper_token)
-              @error = OAuth::InvalidTokenResponse.from_access_token(doorkeeper_token)
-              headers.merge!(@error.headers.reject { |k, v| ['Content-Type'].include? k })
-              render_options = doorkeeper_unauthorized_render_options
-
-              if render_options.nil? || render_options.empty?
-                head :unauthorized
+            unless valid_token?(doorkeeper_for.scopes)
+              if !doorkeeper_token || !doorkeeper_token.accessible?
+                @error = OAuth::InvalidTokenResponse.from_access_token(doorkeeper_token)
+                error_status = :unauthorized
+                options = doorkeeper_unauthorized_render_options
               else
-                render_options[:status] = :unauthorized
-                render_options[:layout] = false if render_options[:layout].nil?
-                render render_options
+                @error = OAuth::ForbiddenTokenResponse.from_scopes(doorkeeper_for.scopes)
+                error_status = :forbidden
+                options = doorkeeper_forbidden_render_options
               end
+              headers.merge!(@error.headers.reject { |k, v| ['Content-Type'].include? k })
+              render_error(error_status, options)
             end
           end
         end
@@ -29,13 +29,35 @@ module Doorkeeper
       end
 
       def doorkeeper_token
-        return @token if instance_variable_defined?(:@token)
-        methods = Doorkeeper.configuration.access_token_methods
-        @token = OAuth::Token.authenticate request, *methods
+        @token ||= OAuth::Token.authenticate request, *config_methods
+      end
+
+      def config_methods
+        @methods ||= Doorkeeper.configuration.access_token_methods
       end
 
       def doorkeeper_unauthorized_render_options
         nil
+      end
+
+      def doorkeeper_forbidden_render_options
+        nil
+      end
+
+      private
+
+      def valid_token?(scopes)
+        doorkeeper_token && doorkeeper_token.acceptable?(scopes)
+      end
+
+      def render_error(error, options)
+        if options.blank?
+          head error
+        else
+          options[:status] = error
+          options[:layout] = false if options[:layout].nil?
+          render options
+        end
       end
     end
   end

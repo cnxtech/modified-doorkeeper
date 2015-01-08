@@ -13,7 +13,7 @@ feature 'Resource Owner Password Credentials Flow inproperly set up' do
 
   context 'with valid user credentials' do
     scenario 'should issue new token' do
-      pending 'Check a way to supress warnings here (or handle config better)'
+      skip 'Check a way to supress warnings here (or handle config better)'
       expect do
         post password_token_endpoint_url(client: @client, resource_owner: @resource_owner)
       end.to_not change { Doorkeeper::AccessToken.count }
@@ -57,6 +57,18 @@ feature 'Resource Owner Password Credentials Flow' do
       token = Doorkeeper::AccessToken.first
 
       should_have_json 'refresh_token',  token.refresh_token
+    end
+
+    scenario 'should return the same token if it is still accessible' do
+      Doorkeeper.configuration.stub(:reuse_access_token).and_return(true)
+
+      client_is_authorized(@client, @resource_owner)
+
+      post password_token_endpoint_url(client: @client, resource_owner: @resource_owner)
+
+      Doorkeeper::AccessToken.count.should be(1)
+
+      should_have_json 'access_token', Doorkeeper::AccessToken.first.token
     end
   end
 

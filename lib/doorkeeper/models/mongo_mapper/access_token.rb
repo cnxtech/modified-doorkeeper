@@ -1,9 +1,6 @@
-require 'doorkeeper/models/mongo_mapper/revocable'
-
 module Doorkeeper
   class AccessToken
     include MongoMapper::Document
-    include Doorkeeper::Models::MongoMapper::Revocable
     safe
     timestamps!
 
@@ -29,8 +26,8 @@ module Doorkeeper
     end
     private_class_method :delete_all_for
 
-    def self.last_authorized_token_for(application, resource_owner_id)
-      where(application_id: application.id,
+    def self.last_authorized_token_for(application_id, resource_owner_id)
+      where(application_id: application_id,
             resource_owner_id: resource_owner_id,
             revoked_at: nil).
         sort(:created_at.desc).

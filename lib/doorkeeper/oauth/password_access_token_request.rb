@@ -1,8 +1,9 @@
 module Doorkeeper
   module OAuth
     class PasswordAccessTokenRequest
-      include Doorkeeper::Validations
-      include Doorkeeper::OAuth::Helpers
+      include Validations
+      include OAuth::RequestConcern
+      include OAuth::Helpers
 
       validate :client,         error: :invalid_client
       validate :resource_owner, error: :invalid_resource_owner
@@ -18,43 +19,15 @@ module Doorkeeper
         @original_scopes = parameters[:scope]
 
         if credentials
-          @client = Doorkeeper::Application.authenticate credentials.uid,
-                                                         credentials.secret
+          @client = Application.authenticate credentials.uid,
+                                             credentials.secret
         end
-      end
-
-      def authorize
-        validate
-        @response = if valid?
-                      issue_token
-                      TokenResponse.new access_token
-                    else
-                      ErrorResponse.from_request self
-                    end
-      end
-
-      def valid?
-        error.nil?
-      end
-
-      def scopes
-        @scopes ||= if @original_scopes.present?
-                      Doorkeeper::OAuth::Scopes.from_string(@original_scopes)
-                    else
-                      server.default_scopes
-                    end
       end
 
       private
 
-      def issue_token
-        @access_token = Doorkeeper::AccessToken.create!(
-          application_id:    client.try(:id),
-          resource_owner_id: resource_owner.id,
-          scopes:            scopes.to_s,
-          expires_in:        server.access_token_expires_in,
-          use_refresh_token: server.refresh_token_enabled?
-        )
+      def before_successful_response
+        find_or_create_access_token(client, resource_owner.id, scopes, {}, server)
       end
 
       def validate_scopes

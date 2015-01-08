@@ -76,7 +76,7 @@ describe Doorkeeper, 'configuration' do
 
   describe 'use_refresh_token' do
     it 'is false by default' do
-      expect(subject.refresh_token_enabled?).to be_false
+      expect(subject.refresh_token_enabled?).to be_falsey
     end
 
     it 'can change the value' do
@@ -84,7 +84,7 @@ describe Doorkeeper, 'configuration' do
         orm DOORKEEPER_ORM
         use_refresh_token
       end
-      expect(subject.refresh_token_enabled?).to be_true
+      expect(subject.refresh_token_enabled?).to be_truthy
     end
 
     it "does not includes 'refresh_token' in authorization_response_types" do
@@ -135,7 +135,7 @@ describe Doorkeeper, 'configuration' do
 
   describe 'enable_application_owner' do
     it 'is disabled by default' do
-      expect(Doorkeeper.configuration.enable_application_owner?).not_to be_true
+      expect(Doorkeeper.configuration.enable_application_owner?).not_to be_truthy
     end
 
     context 'when enabled without confirmation' do
@@ -149,7 +149,7 @@ describe Doorkeeper, 'configuration' do
         expect(Doorkeeper::Application.new).to respond_to :owner
       end
       it 'Doorkeeper.configuration.confirm_application_owner? returns false' do
-        expect(Doorkeeper.configuration.confirm_application_owner?).not_to be_true
+        expect(Doorkeeper.configuration.confirm_application_owner?).not_to be_truthy
       end
     end
 
@@ -164,14 +164,14 @@ describe Doorkeeper, 'configuration' do
         expect(Doorkeeper::Application.new).to respond_to :owner
       end
       it 'Doorkeeper.configuration.confirm_application_owner? returns true' do
-        expect(Doorkeeper.configuration.confirm_application_owner?).to be_true
+        expect(Doorkeeper.configuration.confirm_application_owner?).to be_truthy
       end
     end
   end
 
   describe 'wildcard_redirect_uri' do
     it 'is disabled by default' do
-      Doorkeeper.configuration.wildcard_redirect_uri.should be_false
+      Doorkeeper.configuration.wildcard_redirect_uri.should be_falsey
     end
   end
 
@@ -261,6 +261,16 @@ describe Doorkeeper, 'configuration' do
       it "includes 'client_credentials' in token_grant_types" do
         expect(subject.token_grant_types).to include 'client_credentials'
       end
+    end
+  end
+
+  describe 'test_redirect_uri' do
+    it 'can change the native_redirect_uri value' do
+      Doorkeeper.configure do
+        orm DOORKEEPER_ORM
+        test_redirect_uri 'foo'
+      end
+      expect(subject.native_redirect_uri).to eq('foo')
     end
   end
 

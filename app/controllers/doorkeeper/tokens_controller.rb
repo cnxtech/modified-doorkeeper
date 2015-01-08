@@ -1,9 +1,5 @@
 module Doorkeeper
-  class TokensController < ::Doorkeeper::ApplicationController
-    include Helpers::Controller
-    include ActionController::RackDelegation
-    include ActionController::Instrumentation
-
+  class TokensController < Doorkeeper::ApplicationMetalController
     def create
       response = strategy.authorize
       self.headers.merge! response.headers
@@ -13,11 +9,7 @@ module Doorkeeper
       handle_token_exception e
     end
 
-    #############################################
-    #   RFC 7009 - OAuth 2.0 Token Revocation   #
-    #                                           #
-    #    http://tools.ietf.org/html/rfc7009     #
-    #############################################
+    # OAuth 2.0 Token Revocation - http://tools.ietf.org/html/rfc7009
     def revoke
       # The authorization server first validates the client credentials
       if doorkeeper_token && doorkeeper_token.accessible?
@@ -33,7 +25,7 @@ module Doorkeeper
     private
 
     def revoke_token(token)
-      token = Doorkeeper::AccessToken.authenticate(token) || Doorkeeper::AccessToken.by_refresh_token(token)
+      token = AccessToken.authenticate(token) || AccessToken.by_refresh_token(token)
       if token && doorkeeper_token.same_credential?(token)
         token.revoke
         true
