@@ -50,7 +50,7 @@ module Doorkeeper
       token if token && ScopeChecker.matches?(token.scopes, scopes)
     end
 
-    def self.find_or_create_for(application, resource_owner_id, scopes, expires_in, use_refresh_token)
+    def self.find_or_create_for(application, resource_owner_id, scopes, meta, expires_in, use_refresh_token)
       if Doorkeeper.configuration.reuse_access_token
         access_token = matching_token_for(application, resource_owner_id, scopes)
         if access_token && !access_token.expired?
@@ -62,7 +62,8 @@ module Doorkeeper
         resource_owner_id: resource_owner_id,
         scopes:            scopes.to_s,
         expires_in:        expires_in,
-        use_refresh_token: use_refresh_token
+        use_refresh_token: use_refresh_token,
+        meta:              meta
       )
     end
 

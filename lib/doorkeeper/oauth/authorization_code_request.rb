@@ -25,6 +25,7 @@ module Doorkeeper
         find_or_create_access_token(grant.application,
                                     grant.resource_owner_id,
                                     grant.scopes,
+                                    grant.meta,
                                     server)
       end
 
