@@ -11,27 +11,39 @@ module Doorkeeper
 
     # OAuth 2.0 Token Revocation - http://tools.ietf.org/html/rfc7009
     def revoke
-      # The authorization server first validates the client credentials
-      if doorkeeper_token && doorkeeper_token.accessible?
-        # Doorkeeper does not use the token_type_hint logic described in the RFC 7009
-        # due to the refresh token implementation that is a field in the access token model.
-        revoke_token(request.POST['token']) if request.POST['token']
+      # The authorization server, if applicable, first authenticates the client
+      # and checks its ownership of the provided token.
+      #
+      # Doorkeeper does not use the token_type_hint logic described in the
+      # RFC 7009 due to the refresh token implementation that is a field in
+      # the access token model.
+      if authorized?
+        revoke_token
       end
-      # The authorization server responds with HTTP status code 200 if the
-      # token has been revoked sucessfully or if the client submitted an invalid token
+
+      # The authorization server responds with HTTP status code 200 if the token
+      # has been revoked successfully or if the client submitted an invalid
+      # token
       render json: {}, status: 200
     end
 
     private
 
-    def revoke_token(token)
-      token = AccessToken.authenticate(token) || AccessToken.by_refresh_token(token)
-      if token && doorkeeper_token.same_credential?(token)
+    # Modified from upstream
+    # We don't care if a client is revoking a different client's tokens
+    def authorized?
+      token.present?
+    end
+
+    def revoke_token
+      if token.accessible?
         token.revoke
-        true
-      else
-        false
       end
+    end
+
+    def token
+      @token ||= AccessToken.authenticate(request.POST['token']) ||
+        AccessToken.by_refresh_token(request.POST['token'])
     end
 
     def strategy
