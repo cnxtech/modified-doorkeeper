@@ -5,7 +5,7 @@ module Doorkeeper
         def doorkeeper_for(*args)
           doorkeeper_for = DoorkeeperForBuilder.create_doorkeeper_for(*args)
 
-          before_filter doorkeeper_for.filter_options do
+          before_action doorkeeper_for.filter_options do
             unless valid_token?(doorkeeper_for.scopes)
               if !doorkeeper_token || !doorkeeper_token.accessible?
                 @error = OAuth::InvalidTokenResponse.from_access_token(doorkeeper_token)

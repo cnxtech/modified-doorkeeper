@@ -3,8 +3,8 @@ module Doorkeeper
     layout 'doorkeeper/admin'
     respond_to :html
 
-    before_filter :authenticate_admin!
-    before_filter :set_application, only: [:show, :edit, :update, :destroy]
+    before_action :authenticate_admin!
+    before_action :set_application, only: [:show, :edit, :update, :destroy]
 
     def index
       @applications = Application.all
