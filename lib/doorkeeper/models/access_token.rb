@@ -30,6 +30,7 @@ module Doorkeeper
     end
 
     def self.by_refresh_token(refresh_token)
+      return nil unless refresh_token
       where(refresh_token: refresh_token).first
     end
 
