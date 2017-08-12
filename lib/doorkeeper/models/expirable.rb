@@ -6,7 +6,7 @@ module Doorkeeper
       end
 
       def expired_time
-        created_at + expires_in.seconds
+        expires_in && created_at + expires_in.seconds
       end
 
       def expires_in_seconds
